@@ -1,0 +1,33 @@
+{
+    "translation": {
+        "app_name": "Chrome Shadow",
+        "new_profile": "New Profile",
+        "profiles": "Profiles",
+        "groups": "Groups",
+        "proxies": "Proxies",
+        "settings": "Settings",
+        "new_group": "New Group",
+        "new_proxy": "New Proxy",
+        "all_group": "All Groups",
+        "ungrouped": "Ungrouped",
+        "search_name": "Search name...",
+        "columns": "Columns",
+        "open": "Open",
+        "close": "Close",
+        "name": "Name",
+        "group": "Group",
+        "proxy": "Proxy",
+        "remark": "Remark",
+        "action": "Action",
+        "menus": "Menus",
+        "edit": "Edit",
+        "delete": "Delete",
+        "unproxied": "Unproxied",
+        "api_hint": "Recommended for one-click batch Chrome automation with BrowTo App",
+        "chrome_path": "Chrome installation path",
+        "chrome_path_hint": "If Chrome is installed in a non-default path, change it to the correct path",
+        "language": "Language",
+        "language_hint": "Switch App language",
+        "update": "Update"
+    }
+}

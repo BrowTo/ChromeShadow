@@ -1,0 +1,33 @@
+{
+    "translation": {
+        "app_name": "谷影",
+        "new_profile": "新建浏览器",
+        "profiles": "环境管理",
+        "groups": "分组管理",
+        "proxies": "代理管理",
+        "settings": "设置",
+        "new_group": "新建分组",
+        "new_proxy": "新建代理",
+        "all_group": "所有分组",
+        "ungrouped": "未分组",
+        "search_name": "搜索名称...",
+        "columns": "列",
+        "open": "打开",
+        "close": "关闭",
+        "name": "名称",
+        "group": "分组",
+        "proxy": "代理",
+        "remark": "备注",
+        "action": "操作",
+        "menus": "菜单",
+        "edit": "编辑",
+        "delete": "删除",
+        "unproxied": "无代理",
+        "api_hint": "推荐配合指纹猎手App实现一键批量Chrome自动化",
+        "chrome_path": "Chrome安装路径",
+        "chrome_path_hint": "如果Chrome安装在非默认路径，请修改为正确路径",
+        "language": "语言",
+        "language_hint": "切换App语言",
+        "update": "更新"
+    }
+}

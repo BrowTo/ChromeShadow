@@ -1,0 +1,111 @@
+import { AppWindow, FolderTree, Settings, Chrome, Earth } from "lucide-react"
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from "@/components/ui/sidebar"
+import { AddProfileBtn } from "./add-profile-btn"
+import { useEffect, useState } from "react"
+import { ProfilePage } from "@/profiles/page"
+import { GroupsPage } from "@/groups/page"
+import { SettingsPage } from "@/settings/page"
+import { useTranslation } from "react-i18next"
+import { TFunction } from "i18next"
+import { ProxiesPage } from "@/proxies/page"
+
+export type MenuType = {
+    title: string,
+    icon: any,
+    page: React.ReactNode
+}
+
+// Menu items.
+export function getMenuItems(t: TFunction): Array<MenuType> {
+    return ([
+        {
+            title: t("profiles"),
+            icon: AppWindow,
+            page: <ProfilePage />
+        },
+        {
+            title: t("groups"),
+            icon: FolderTree,
+            page: <GroupsPage />
+        },
+        {
+            title: t("proxies"),
+            icon: Earth,
+            page: <ProxiesPage />
+        },
+        {
+            title: t("settings"),
+            icon: Settings,
+            page: <SettingsPage />
+        },
+    ])
+}
+
+export interface AppSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
+    onMenuSelected: (item: MenuType) => void
+}
+
+export function AppSidebar({ onMenuSelected }: AppSidebarProps) {
+
+    const { t, i18n: { language } } = useTranslation()
+    const [curMenu, setCurMenu] = useState(0)
+    const [menuItems, setMenuItems] = useState(getMenuItems(t))
+    useEffect(() => {
+        const newMenu = getMenuItems(t)
+        onMenuSelected(newMenu[curMenu])
+        setMenuItems(newMenu)
+    }, [t, language])
+
+    return (
+        <Sidebar collapsible="offcanvas">
+            <SidebarHeader>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton
+                            size="lg"
+                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        >
+                            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                                <Chrome className="size-4" />
+                            </div>
+                            <div className="grid flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">
+                                    {t('app_name')}
+                                </span>
+                                <span className="truncate text-xs">V1.0.0</span>
+                            </div>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarHeader>
+            <AddProfileBtn />
+            <SidebarContent>
+                <SidebarGroup>
+                    <SidebarGroupContent>
+                        <SidebarMenu>
+                            {menuItems.map((item, index) => (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton asChild isActive={index == curMenu} onClick={() => {
+                                        setCurMenu(index)
+                                        onMenuSelected(item)
+                                    }}>
+                                        <a> <item.icon /> <span>{item.title}</span> </a>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroupContent>
+                </SidebarGroup>
+            </SidebarContent>
+        </Sidebar>
+    )
+}
