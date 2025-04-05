@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ProxyType } from "@/lib/types"
+import { TFunction } from "i18next"
 
-export function getColumns(onOpenEdit: (proxy: ProxyType) => void, onDelete: (proxyId: number) => void): ColumnDef<ProxyType>[] {
+export function getColumns(t: TFunction, onOpenEdit: (proxy: ProxyType) => void, onDelete: (proxyId: number) => void): ColumnDef<ProxyType>[] {
     return [
         {
             id: "select",
@@ -44,21 +45,22 @@ export function getColumns(onOpenEdit: (proxy: ProxyType) => void, onDelete: (pr
         },
         {
             accessorKey: "name",
-            header: "Name",
+            header: t("name"),
             cell: ({ row }) => (
                 <div>{row.getValue("name")}</div>
             ),
         },
         {
             accessorKey: "remark",
-            header: "Remark",
+            header: t("remark"),
             cell: ({ row }) => (
                 <div>{row.getValue("remark")}</div>
             ),
         },
         {
             size: 120,
-            id: "actions",
+            id: "menus",
+            header: t("menus"),
             enableHiding: false,
             cell: ({ row }) => {
                 const proxy = row.original
@@ -77,12 +79,12 @@ export function getColumns(onOpenEdit: (proxy: ProxyType) => void, onDelete: (pr
                                 onClick={() => {
                                     onOpenEdit(proxy)
                                 }}
-                            > Edit
+                            > {t('edit')}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-red-600" onClick={() => {
                                 onDelete(proxy.id)
-                            }}>Delete</DropdownMenuItem>
+                            }}>{t('delete')}</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )

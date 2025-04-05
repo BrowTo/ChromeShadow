@@ -72,7 +72,7 @@ export function SettingsPage() {
 
     async function onSubmit(data: SystemConfFormValues) {
         console.log("Update system pref: ", JSON.stringify(data, null, 2))
-        toast("config_update_success")
+        toast(t("settings_update_success"))
         for (const [key, value] of Object.entries(data)) {
 
             await store.set(key, value)

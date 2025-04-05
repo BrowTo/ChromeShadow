@@ -7,10 +7,12 @@ import { CHROME_CLOSED_EVENT_NAME, CHROME_STARTED_EVENT_NAME, PROFILE_REFRESH_EV
 import { invoke } from "@tauri-apps/api/core"
 import { getLastNameFromPath } from "@/lib/utils"
 import { getColumns } from "./columns"
+import { useTranslation } from "react-i18next"
 
 export function ProfilePage() {
     const [data, setData] = useState<Array<ProfileType>>([])
     const [runningData, setRunningData] = useState<Array<ProfileStatusType>>([])
+    const { t } = useTranslation()
     const unlistenRef = useRef<(() => void) | null>(null)
     const unlistenChromeCloseRef = useRef<(() => void) | null>(null)
     const unlistenChromeStartRef = useRef<(() => void) | null>(null)
@@ -106,7 +108,7 @@ export function ProfilePage() {
 
     return (
         <div className="container mx-auto px-4">
-            <DataTable ref={tableRef} columns={getColumns(runningData, (name, open) => {
+            <DataTable t={t} ref={tableRef} columns={getColumns(t, runningData, (name, open) => {
                 if (open) {
                     setRunningData(prev => [...prev, { name, running: false, loading: true }])
                 } else {

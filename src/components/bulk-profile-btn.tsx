@@ -31,13 +31,15 @@ import { toast } from "sonner"
 import { bulkAddProfile } from "@/lib/db-service"
 import { emit } from "@tauri-apps/api/event"
 import { PROFILE_REFRESH_EVENT_NAME } from "@/lib/consts"
+import { TFunction } from "i18next"
 
 export interface BulkProfileBtnProps {
+    t: TFunction
     groupInfos: GroupType[]
     proxyInfos: ProxyType[]
 }
 
-export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) => {
+export const BulkProfileBtn = ({ t, groupInfos, proxyInfos }: BulkProfileBtnProps) => {
     const [open, setOpen] = useState(false)
     const [info, setInfo] = useState<{
         size: number, groupId: number | undefined, groupOpen: boolean, proxyId: number | undefined, proxyOpen: boolean,
@@ -54,19 +56,19 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
     const handleSave = async () => {
         console.log({ info })
         if (info.size <= 0) {
-            toast.warning("Size error")
+            toast.warning(t("size_error"))
             return
         }
         const profileNames = generateUniqueProfileName(info.size)
         await createBulkProfiles(profileNames)
         const success = await bulkAddProfile(profileNames, info.groupId ?? null, info.proxyId ?? null)
         if (success) {
-            toast.success("Add profiles success")
+            toast.success(t("bulk_add_success"))
             setOpen(false)
             await emit(PROFILE_REFRESH_EVENT_NAME, { jumpLast: true })
             setInfo(({ size: 1, groupId: undefined, groupOpen: false, proxyId: undefined, proxyOpen: false }))
         } else {
-            toast.warning("Add profiles failed")
+            toast.warning(t("bulk_add_failed"))
         }
     }
 
@@ -83,12 +85,12 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>New Bulk Browser Profile</DialogTitle>
+                    <DialogTitle>{t('new_bulk_profile')}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
-                            Size
+                            {t('size')}
                         </Label>
                         <Input
                             id="size"
@@ -101,7 +103,7 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="group" className="text-right">
-                            Group
+                            {t('group')}
                         </Label>
                         <Popover open={info.groupOpen} onOpenChange={(open) => {
                             setInfo(prev => ({
@@ -119,7 +121,7 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
                                     >
                                         <span className="truncate">
                                             {info.groupId ? groupInfos.find((group) => group.id == info.groupId)?.name
-                                                : "Select group..."}
+                                                : t("select_group")}
                                         </span>
                                         <ChevronsUpDown className="opacity-50" />
                                     </Button>
@@ -127,9 +129,9 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
                             </PopoverTrigger>
                             <PopoverContent className="p-0 h-[250px]">
                                 <Command>
-                                    <CommandInput placeholder="Search group..." />
+                                    <CommandInput placeholder={t("search_group")} />
                                     <CommandList>
-                                        <CommandEmpty>No group found.</CommandEmpty>
+                                        <CommandEmpty>{t('no_group_find')}</CommandEmpty>
                                         <CommandGroup>
                                             {groupInfos.map((group) => (
                                                 <CommandItem
@@ -160,7 +162,7 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="proxy" className="text-right">
-                            Proxy
+                            {t('proxy')}
                         </Label>
                         <Popover open={info.proxyOpen} onOpenChange={(open) => {
                             setInfo(prev => ({
@@ -178,7 +180,7 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
                                     >
                                         <span className="truncate">
                                             {info.proxyId ? proxyInfos.find((proxy) => proxy.id == info.proxyId)?.name
-                                                : "Select proxy..."}
+                                                : t("select_proxy")}
                                         </span>
                                         <ChevronsUpDown className="opacity-50" />
                                     </Button>
@@ -186,9 +188,9 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
                             </PopoverTrigger>
                             <PopoverContent className="p-0 h-[250px]">
                                 <Command>
-                                    <CommandInput placeholder="Search proxy..." />
+                                    <CommandInput placeholder={t("search_proxy")} />
                                     <CommandList>
-                                        <CommandEmpty>No proxy found.</CommandEmpty>
+                                        <CommandEmpty>{t('no_proxy_find')}</CommandEmpty>
                                         <CommandGroup>
                                             {proxyInfos.map((proxy) => (
                                                 <CommandItem
@@ -221,10 +223,10 @@ export const BulkProfileBtn = ({ groupInfos, proxyInfos }: BulkProfileBtnProps) 
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">
-                            Close
+                            {t('close')}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" onClick={handleSave}>Save</Button>
+                    <Button type="submit" onClick={handleSave}>{t('save')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

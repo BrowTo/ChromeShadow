@@ -37,8 +37,10 @@ import { ProxyType } from "@/lib/types"
 import { deleteProxies } from "@/lib/db-service"
 import { toast } from "sonner"
 import { NewProxyBtn } from "./new-proxy-btn"
+import { TFunction } from "i18next"
 
 interface DataTableProps<TData, TValue> {
+    t: TFunction,
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
     onRefresh: () => void
@@ -49,6 +51,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTable<TData, TValue>({
+    t,
     columns,
     data,
     onRefresh,
@@ -81,7 +84,7 @@ export function DataTable<TData, TValue>({
         <div>
             <div className="flex items-center pt-4 gap-4">
                 <Input
-                    placeholder="Filter name..."
+                    placeholder={t("search_name")}
                     value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
                     onChange={(event) =>
                         table.getColumn("name")?.setFilterValue(event.target.value)
@@ -92,7 +95,7 @@ export function DataTable<TData, TValue>({
                     <DropdownMenuTrigger asChild>
                         <div>
                             <Button variant="outline" className="ml-auto">
-                                Columns <ChevronDown />
+                                {t('columns')} <ChevronDown />
                             </Button>
                         </div>
                     </DropdownMenuTrigger>
@@ -110,7 +113,7 @@ export function DataTable<TData, TValue>({
                                             column.toggleVisibility(!!value)
                                         }
                                     >
-                                        {column.id}
+                                        {column.columnDef.header + ""}
                                     </DropdownMenuCheckboxItem>
                                 )
                             })}
@@ -118,7 +121,7 @@ export function DataTable<TData, TValue>({
                 </DropdownMenu>
             </div>
             <div className="flex items-center py-2 gap-4">
-                <NewProxyBtn onProxyAdded={onRefresh} editProxy={editProxy} setEditProxy={setEditProxy} open={editOpen} setOpen={setEditOpen} />
+                <NewProxyBtn t={t} onProxyAdded={onRefresh} editProxy={editProxy} setEditProxy={setEditProxy} open={editOpen} setOpen={setEditOpen} />
                 <Button
                     variant="outline"
                     size='icon'
@@ -129,9 +132,9 @@ export function DataTable<TData, TValue>({
                         console.log({ rows })
                         const { rowsAffected } = await deleteProxies(rows.map(r => r.id))
                         if (rowsAffected == rows.length) {
-                            toast.success("Delete proxies success")
+                            toast.success(t("delete_proxy_success"))
                         } else {
-                            toast.warning("Delete proxies failed")
+                            toast.success(t("delete_proxy_failed"))
                         }
                         table.toggleAllRowsSelected(false)
                         onRefresh()
@@ -177,7 +180,7 @@ export function DataTable<TData, TValue>({
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    No results.
+                                    {t('no_results')}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -186,12 +189,11 @@ export function DataTable<TData, TValue>({
             </div>
             <div className="flex items-center justify-between py-4">
                 <div className="flex-1 text-sm text-muted-foreground">
-                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                    {table.getFilteredRowModel().rows.length} row(s) selected
+                    {t("selected_rows", { selected: table.getFilteredSelectedRowModel().rows.length, total: table.getFilteredRowModel().rows.length })}
                 </div>
                 <div className="flex items-center space-x-6 lg:space-x-8">
                     <div className="flex items-center space-x-2">
-                        <p className="text-sm">Rows per page</p>
+                        <p className="text-sm">{t('rows_per_page')}</p>
                         <Select
                             value={`${table.getState().pagination.pageSize}`}
                             onValueChange={(value) => {
@@ -211,8 +213,7 @@ export function DataTable<TData, TValue>({
                         </Select>
                     </div>
                     <div className="flex items-center justify-center text-sm">
-                        Page {table.getState().pagination.pageIndex + 1} of{" "}
-                        {table.getPageCount()}
+                        {t('page_num', { page: table.getState().pagination.pageIndex + 1, total: table.getPageCount() })}
                     </div>
                     <div className="flex items-center space-x-2">
                         <Button

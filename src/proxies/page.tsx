@@ -4,11 +4,13 @@ import { DataTable } from "./data-table"
 import { useEffect, useState } from "react"
 import { deleteProxy, getProxies } from "@/lib/db-service"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 
 export function ProxiesPage() {
     const [data, setData] = useState<Array<ProxyType>>([])
     const [editProxy, setEditProxy] = useState<ProxyType | undefined>()
     const [editOpen, setEditOpen] = useState(false)
+    const { t } = useTranslation();
 
     useEffect(() => {
         refreshProxy()
@@ -27,16 +29,16 @@ export function ProxiesPage() {
     const onDelete = async (id: number) => {
         const { rowsAffected } = await deleteProxy(id)
         if (rowsAffected == 1) {
-            toast.success("Delete success")
+            toast.success(t("delete_proxy_success"))
             await refreshProxy()
         } else {
-            toast.warning("Delete failed")
+            toast.success(t("delete_proxy_failed"))
         }
     }
 
     return (
         <div className="container mx-auto px-4">
-            <DataTable columns={getColumns(onOpenEdit, onDelete)} data={data} onRefresh={refreshProxy} editProxy={editProxy} setEditProxy={setEditProxy} editOpen={editOpen} setEditOpen={setEditOpen} />
+            <DataTable t={t} columns={getColumns(t, onOpenEdit, onDelete)} data={data} onRefresh={refreshProxy} editProxy={editProxy} setEditProxy={setEditProxy} editOpen={editOpen} setEditOpen={setEditOpen} />
         </div>
     )
 }

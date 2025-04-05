@@ -1,4 +1,3 @@
-import { useTranslation } from "react-i18next"
 import {
     Dialog,
     DialogClose,
@@ -17,8 +16,10 @@ import { addGroup, checkGroup, updateGroup } from "@/lib/db-service"
 import { GroupType } from "@/lib/types"
 import { emit } from "@tauri-apps/api/event"
 import { GROUP_UPDATE_EVENT_NAME } from "@/lib/consts"
+import { TFunction } from "i18next"
 
 export interface NewGroupBtnProps {
+    t: TFunction,
     onGroupAdded: () => void
     open: boolean
     setOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -26,8 +27,7 @@ export interface NewGroupBtnProps {
     setEditGroup: React.Dispatch<React.SetStateAction<GroupType | undefined>>
 }
 
-export const NewGroupBtn = ({ onGroupAdded, open, setOpen, editGroup, setEditGroup }: NewGroupBtnProps) => {
-    const { t } = useTranslation()
+export const NewGroupBtn = ({ t, onGroupAdded, open, setOpen, editGroup, setEditGroup }: NewGroupBtnProps) => {
     const [info, setInfo] = useState<{ name: string, remark: string }>({
         name: '',
         remark: ''
@@ -54,35 +54,35 @@ export const NewGroupBtn = ({ onGroupAdded, open, setOpen, editGroup, setEditGro
     const handleSaveGroup = async () => {
         console.log({ info })
         if (!info.name) {
-            toast.warning("Name empty")
+            toast.warning(t("empty_name"))
             return
         }
         if (editGroup) {
             if (info.name != editGroup.name) {
                 const exist = await checkGroup(info.name)
                 if (exist) {
-                    toast.warning("Group name already exist")
+                    toast.warning(t("group_exist"))
                     return
                 }
             }
             const { rowsAffected } = await updateGroup(editGroup.id, info.name, info.remark ?? null)
             if (rowsAffected == 1) {
-                toast.success("Group update success")
+                toast.success(t("group_update_success"))
             } else {
-                toast.warning("Group update failed")
+                toast.warning(t("group_update_failed"))
                 return
             }
         } else {
             const exist = await checkGroup(info.name)
             if (exist) {
-                toast.warning("Group name already exist")
+                toast.warning(t("group_exist"))
                 return
             } else {
                 const { rowsAffected } = await addGroup(info.name, info.remark ?? null)
                 if (rowsAffected == 1) {
-                    toast.success("Group added")
+                    toast.success(t("add_group_success"))
                 } else {
-                    toast.warning("Group add failed")
+                    toast.warning(t("add_group_failed"))
                     return
                 }
             }
@@ -107,16 +107,16 @@ export const NewGroupBtn = ({ onGroupAdded, open, setOpen, editGroup, setEditGro
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{editGroup ? 'Edit Group' : 'New Group'}</DialogTitle>
+                    <DialogTitle>{editGroup ? t('edit_group') : t('new_group')}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
-                            Name
+                            {t('name')}
                         </Label>
                         <Input
                             className="col-span-3"
-                            placeholder="Group Name"
+                            placeholder={t("group_name")}
                             name='name'
                             value={info.name}
                             onChange={handleChange}
@@ -124,11 +124,11 @@ export const NewGroupBtn = ({ onGroupAdded, open, setOpen, editGroup, setEditGro
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="remark" className="text-right">
-                            Remark
+                            {t('remark')}
                         </Label>
                         <Input
                             className="col-span-3"
-                            placeholder="Optional"
+                            placeholder={t("optional")}
                             name='remark'
                             value={info.remark}
                             onChange={handleChange}
@@ -138,10 +138,10 @@ export const NewGroupBtn = ({ onGroupAdded, open, setOpen, editGroup, setEditGro
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">
-                            Close
+                            {t('close')}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" onClick={handleSaveGroup}>Save</Button>
+                    <Button type="submit" onClick={handleSaveGroup}>{t('save')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

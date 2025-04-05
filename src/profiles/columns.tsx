@@ -1,5 +1,4 @@
 import { ColumnDef } from "@tanstack/react-table"
-
 import { Chrome, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,11 +15,14 @@ import { emit } from "@tauri-apps/api/event"
 import { PROFILE_EDIT_EVENT_NAME, PROFILE_REFRESH_EVENT_NAME } from "@/lib/consts"
 import { toast } from "sonner"
 import { invoke } from "@tauri-apps/api/core"
+import { TFunction } from "i18next"
 
 export function getColumns(
+    t: TFunction,
     runningData: ProfileStatusType[],
     onLoading: (name: string, open: boolean) => void,
     onOpenFailed: (name: string) => void): ColumnDef<ProfileType>[] {
+
     return [
         {
             id: "select",
@@ -53,38 +55,41 @@ export function getColumns(
         },
         {
             accessorKey: "name",
-            header: "Name",
+            header: t("name"),
             cell: ({ row }) => (
                 <div>{row.getValue("name")}</div>
             ),
         },
         {
             accessorKey: "group_name",
-            header: "Group",
-            cell: ({ row }) => (
-                <div>{row.getValue("group_name")}</div>
-            ),
+            header: t("group"),
+            cell: ({ row }) => {
+                const groupInfo = row.getValue("group_name") + "";
+                return (
+                    <div>{groupInfo == 'ungrouped' ? t('ungrouped') : groupInfo}</div>
+                )
+            },
         },
         {
             accessorKey: "proxy_name",
-            header: "Proxy",
+            header: t("proxy"),
             cell: ({ row }) => {
                 const proxyInfo = row.getValue("proxy_name") + ""
                 return (
-                    <div>{proxyInfo == 'unproxied' ? 'unproxied' : stripCredentials(proxyInfo)}</div>
+                    <div>{proxyInfo == 'unproxied' ? t('unproxied') : stripCredentials(proxyInfo)}</div>
                 )
             },
         },
         {
             accessorKey: "remark",
-            header: "Remark",
+            header: t("remark"),
             cell: ({ row }) => (
                 <div>{row.getValue("remark")}</div>
             ),
         },
         {
             id: "open",
-            header: "Action",
+            header: t("action"),
             enableHiding: false,
             cell: ({ row }) => {
                 const profile = row.original;
@@ -103,14 +108,14 @@ export function getColumns(
                                 await launchChromeWithProfile(profile, onOpenFailed)
                             }
                         }}>
-                        <Chrome /> {loading ? 'Loading' : runningPid ? 'Close' : 'Open'}
+                        <Chrome /> {loading ? t('loading') : runningPid ? t('close') : t('open')}
                     </Button>
                 )
             }
         },
         {
             id: "menus",
-            header: "Menus",
+            header: t("menus"),
             enableHiding: false,
             cell: ({ row }) => {
                 const profile = row.original
@@ -129,13 +134,13 @@ export function getColumns(
                                 onClick={async () => {
                                     await emit(PROFILE_EDIT_EVENT_NAME, { ...profile })
                                 }}
-                            > Edit </DropdownMenuItem>
+                            > {t('edit')} </DropdownMenuItem>
                             <DropdownMenuItem className="text-red-600" onClick={async () => {
                                 await removeLocalProfile(profile.name)
                                 await deleteProfile(profile.id)
                                 await emit(PROFILE_REFRESH_EVENT_NAME)
-                                toast.success("Profile delete success")
-                            }}>Delete</DropdownMenuItem>
+                                toast.success(t("delete_profile_success"))
+                            }}>{t('delete')}</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )

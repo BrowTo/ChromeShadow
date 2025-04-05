@@ -8,6 +8,7 @@ import {
 import { getGroups } from "@/lib/db-service";
 import { GroupType } from "@/lib/types";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export interface GroupSelectProps {
     onSelect: (groupId: number) => void
@@ -17,11 +18,12 @@ export function GroupSelect({ onSelect }: GroupSelectProps) {
 
     const [curGroupId, setCurGroupId] = useState<number>(0)
     const [groups, setGroups] = useState<Array<GroupType>>([])
+    const { t } = useTranslation()
 
     useEffect(() => {
         (async () => {
             let groups = await getGroups()
-            const header: GroupType[] = [{ id: 0, name: 'All Group', remark: '' }, { id: -1, name: 'UnGrouped', remark: '' }]
+            const header: GroupType[] = [{ id: 0, name: t('all_group'), remark: '' }, { id: -1, name: t('ungrouped'), remark: '' }]
             groups = header.concat(groups)
             setGroups(groups)
         })()

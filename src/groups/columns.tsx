@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Checkbox } from "@/components/ui/checkbox"
 import { GroupType } from "@/lib/types"
+import { TFunction } from "i18next"
 
-export function getColumns(onOpenEdit: (group: GroupType) => void, onDelete: (groupId: number) => void): ColumnDef<GroupType>[] {
+export function getColumns(t: TFunction, onOpenEdit: (group: GroupType) => void, onDelete: (groupId: number) => void): ColumnDef<GroupType>[] {
     return [
         {
             id: "select",
@@ -44,21 +45,22 @@ export function getColumns(onOpenEdit: (group: GroupType) => void, onDelete: (gr
         },
         {
             accessorKey: "name",
-            header: "Name",
+            header: t("name"),
             cell: ({ row }) => (
                 <div>{row.getValue("name")}</div>
             ),
         },
         {
             accessorKey: "remark",
-            header: "Remark",
+            header: t("remark"),
             cell: ({ row }) => (
                 <div>{row.getValue("remark")}</div>
             ),
         },
         {
+            id: "menus",
             size: 120,
-            id: "actions",
+            header: t("menus"),
             enableHiding: false,
             cell: ({ row }) => {
                 const group = row.original
@@ -77,12 +79,12 @@ export function getColumns(onOpenEdit: (group: GroupType) => void, onDelete: (gr
                                 onClick={() => {
                                     onOpenEdit(group)
                                 }}
-                            > Edit
+                            > {t('edit')}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-red-600" onClick={() => {
                                 onDelete(group.id)
-                            }}>Delete</DropdownMenuItem>
+                            }}>{t('delete')}</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )

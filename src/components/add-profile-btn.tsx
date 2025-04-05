@@ -114,34 +114,34 @@ export const AddProfileBtn = () => {
 
         console.log({ info })
         if (!info.name) {
-            toast.warning("Empty name")
+            toast.warning(t("empty_name"))
             return
         }
         if (!editMode) {
             const exist = await checkProfile(info.name)
             if (exist) {
-                toast.warning("Profile already exist")
+                toast.warning(t("profile_exist"))
             } else {
                 await createLocalProfile(info.name)
                 const { rowsAffected } = await addProfile(info.name, info.groupId ?? null, info.proxyId ?? null, info.remark ?? null)
                 if (rowsAffected == 1) {
-                    toast.success("Add profile success")
+                    toast.success(t("add_profile_success"))
                     setOpen(false)
                     await emit(PROFILE_REFRESH_EVENT_NAME, { jumpLast: true })
                     setInfo(({ name: '', groupId: undefined, groupOpen: false, proxyId: undefined, proxyOpen: false, remark: '' }))
                 } else {
-                    toast.warning("Add profile failed")
+                    toast.warning(t("add_profile_failed"))
                 }
             }
         } else {
             const { rowsAffected } = await updateProfile(editProfileId.current, info.name, info.groupId ?? null, info.proxyId ?? null, info.remark ?? null)
             if (rowsAffected == 1) {
-                toast.success("Update profile success")
+                toast.success(t("update_profile_success"))
                 setOpen(false)
                 await emit(PROFILE_REFRESH_EVENT_NAME)
                 setInfo(({ name: '', groupId: undefined, groupOpen: false, proxyId: undefined, proxyOpen: false, remark: '' }))
             } else {
-                toast.warning("Update profile failed")
+                toast.warning(t("update_profile_failed"))
             }
         }
     }
@@ -160,18 +160,18 @@ export const AddProfileBtn = () => {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{editMode ? 'Edit Browser Profile' : 'New Browser Profile'}</DialogTitle>
+                    <DialogTitle>{editMode ? t('edit_profile') : t('new_profile')}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right">
-                            Name
+                            {t('name')}
                         </Label>
                         <Input
                             id="name"
                             className="col-span-3"
                             value={info.name}
-                            placeholder="Profile name"
+                            placeholder={t("profile_name")}
                             name="name"
                             onChange={handleChange}
                             disabled={editMode}
@@ -179,7 +179,7 @@ export const AddProfileBtn = () => {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="group" className="text-right">
-                            Group
+                            {t('group')}
                         </Label>
                         <Popover open={info.groupOpen} onOpenChange={(open) => {
                             setInfo(prev => ({
@@ -197,7 +197,7 @@ export const AddProfileBtn = () => {
                                     >
                                         <span className="truncate">
                                             {info.groupId ? groupInfos.find((group) => group.id == info.groupId)?.name
-                                                : "Select group..."}
+                                                : t("select_group")}
                                         </span>
                                         <ChevronsUpDown className="opacity-50" />
                                     </Button>
@@ -205,9 +205,9 @@ export const AddProfileBtn = () => {
                             </PopoverTrigger>
                             <PopoverContent className="p-0 h-[250px]">
                                 <Command>
-                                    <CommandInput placeholder="Search group..." />
+                                    <CommandInput placeholder={t("search_group")} />
                                     <CommandList>
-                                        <CommandEmpty>No group found.</CommandEmpty>
+                                        <CommandEmpty>{t('no_group_find')}</CommandEmpty>
                                         <CommandGroup>
                                             {groupInfos.map((group) => (
                                                 <CommandItem
@@ -238,7 +238,7 @@ export const AddProfileBtn = () => {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="proxy" className="text-right">
-                            Proxy
+                            {t('proxy')}
                         </Label>
                         <Popover open={info.proxyOpen} onOpenChange={(open) => {
                             setInfo(prev => ({
@@ -256,7 +256,7 @@ export const AddProfileBtn = () => {
                                     >
                                         <span className="truncate">{info.proxyId
                                             ? proxyInfos.find((proxy) => proxy.id == info.proxyId)?.name
-                                            : "Select proxy..."}
+                                            : t("select_proxy")}
                                         </span>
                                         <ChevronsUpDown className="opacity-50" />
                                     </Button>
@@ -264,9 +264,9 @@ export const AddProfileBtn = () => {
                             </PopoverTrigger>
                             <PopoverContent className="p-0 h-[250px]">
                                 <Command>
-                                    <CommandInput placeholder="Search proxy..." />
+                                    <CommandInput placeholder={t("search_proxy")} />
                                     <CommandList>
-                                        <CommandEmpty>No proxy found.</CommandEmpty>
+                                        <CommandEmpty>{t('no_proxy_find')}</CommandEmpty>
                                         <CommandGroup>
                                             {proxyInfos.map((proxy) => (
                                                 <CommandItem
@@ -297,13 +297,13 @@ export const AddProfileBtn = () => {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="remark" className="text-right">
-                            Remark
+                            {t('remark')}
                         </Label>
                         <Input
                             id="remark"
                             name="remark"
                             className="col-span-3"
-                            placeholder="Optional"
+                            placeholder={t("optional")}
                             value={info.remark}
                             onChange={handleChange}
                         />
@@ -312,14 +312,14 @@ export const AddProfileBtn = () => {
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">
-                            Close
+                            {t('close')}
                         </Button>
                     </DialogClose>
-                    <Button type="submit" onClick={handleSave}>Save</Button>
+                    <Button type="submit" onClick={handleSave}>{t('save')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
 
-        <BulkProfileBtn groupInfos={groupInfos} proxyInfos={proxyInfos} />
+        <BulkProfileBtn t={t} groupInfos={groupInfos} proxyInfos={proxyInfos} />
     </div>
 }
