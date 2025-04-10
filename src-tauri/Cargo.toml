@@ -30,6 +30,9 @@ tauri-plugin-fs = "2"
 lazy_static = "1.5.0"
 tokio = "1.44.1"
 tauri-plugin-process = "2"
+actix-web = "4"
+sqlx = "0.8.3"
+reqwest = { version = "0.12.15", features = ["json"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-window-state = "2"

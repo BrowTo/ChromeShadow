@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils";
-import { ChevronDown, Copy } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { type } from "@tauri-apps/plugin-os"
 import { load, Store } from "@tauri-apps/plugin-store";
 
@@ -32,7 +32,6 @@ const initOrLoadSettings = async () => {
     store = await load('settings.json');
     const chrome_path = await store.get('chrome_path');
     const lang = await store.get('lang');
-    console.log({ chrome_path }, { lang })
     if (!chrome_path && !lang) {
         const defaultValues = {
             chrome_path: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe", lang: 'zh'
@@ -72,9 +71,12 @@ export function SettingsPage() {
 
     async function onSubmit(data: SystemConfFormValues) {
         console.log("Update system pref: ", JSON.stringify(data, null, 2))
+        if (!data.chrome_path.endsWith('chrome.exe')) {
+            toast(t("chrome_path_error"))
+            return
+        }
         toast(t("settings_update_success"))
         for (const [key, value] of Object.entries(data)) {
-
             await store.set(key, value)
         }
         await store.save()
@@ -97,15 +99,12 @@ export function SettingsPage() {
                 <p className="text-muted-foreground text-sm">{t('api_hint')}</p>
                 <div className="flex gap-4">
                     <span className="w-full text-sm text-green-600 border-green-600 border p-2 bg-green-50 rounded-sm">http://127.0.0.1:51888</span>
-                    <Button size='icon'>
-                        <Copy />
-                    </Button>
                 </div>
             </div>
             <Form {...form} >
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                     {
-                        !isWindows &&
+                        isWindows &&
                         <FormField
                             control={form.control}
                             name="chrome_path"

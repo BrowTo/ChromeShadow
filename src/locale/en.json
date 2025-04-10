@@ -76,6 +76,7 @@
         "proxy_update_failed": "Failed to update proxy",
         "proxy_add_success": "Adding proxy successfully",
         "proxy_add_failed": "Failed to add proxy",
-        "settings_update_success": "Setting information is updated successfully"
+        "settings_update_success": "Setting information is updated successfully",
+        "chrome_path_error": "The Chrome path was incorrectly configured and the execution file could not be found"
     }
 }

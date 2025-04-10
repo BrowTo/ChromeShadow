@@ -3,9 +3,9 @@ import { DataTable } from "./data-table"
 import { useEffect, useRef, useState } from "react"
 import { getProfiles } from "@/lib/db-service"
 import { listen } from '@tauri-apps/api/event'
-import { CHROME_CLOSED_EVENT_NAME, CHROME_STARTED_EVENT_NAME, PROFILE_REFRESH_EVENT_NAME } from "@/lib/consts"
+import { CHROME_API_CLOSE_EVENT_NAME, CHROME_API_LAUNCH_EVENT_NAME, CHROME_CLOSED_EVENT_NAME, CHROME_STARTED_EVENT_NAME, PROFILE_REFRESH_EVENT_NAME } from "@/lib/consts"
 import { invoke } from "@tauri-apps/api/core"
-import { getLastNameFromPath } from "@/lib/utils"
+import { getLastNameFromPath, launchChromeWithProfile } from "@/lib/utils"
 import { getColumns } from "./columns"
 import { useTranslation } from "react-i18next"
 
@@ -16,6 +16,8 @@ export function ProfilePage() {
     const unlistenRef = useRef<(() => void) | null>(null)
     const unlistenChromeCloseRef = useRef<(() => void) | null>(null)
     const unlistenChromeStartRef = useRef<(() => void) | null>(null)
+    const unlistenChromeApiLaunchRef = useRef<(() => void) | null>(null)
+    const unlistenChromeApiCloseRef = useRef<(() => void) | null>(null)
     const curGroupIdRef = useRef<number>(0)
     const tableRef = useRef<any>(null)
 
@@ -41,12 +43,36 @@ export function ProfilePage() {
 
     useEffect(() => {
         const setupListener = async () => {
+            unlistenChromeApiLaunchRef.current = await listen(CHROME_API_LAUNCH_EVENT_NAME, async ({ payload }) => {
+                console.log(`CHROME API LAUNCH EVENT:`, payload)
+                setRunningData(prev => [...prev, { name, running: false, loading: true }])
+                const id = (payload as any).id
+                const name = (payload as any).name
+                const port = (payload as any).port
+                const proxy_name = (payload as any).proxy_name
+                const profile: ProfileType = {
+                    id, name, proxy_name,
+                    group_name: null,
+                    remark: null
+                }
+                await launchChromeWithProfile(profile, (name) => {
+                    setRunningData(prev => prev.filter(item => item.name != name))
+                }, port)
+            });
+            unlistenChromeApiCloseRef.current = await listen(CHROME_API_CLOSE_EVENT_NAME, async ({ payload }) => {
+                console.log(`CHROME API CLOSE EVENT:`, payload)
+                const name = (payload as any).name
+                const pid = Number((payload as any).pid)
+                setRunningData(prev => prev.map(p => p.name == name ? { name, pid: p.pid, running: p.running, loading: true } : p))
+                invoke('close_chrome', { pid }).then(console.log).catch(console.error)
+            })
             unlistenChromeStartRef.current = await listen(CHROME_STARTED_EVENT_NAME, ({ payload }) => {
                 console.log(`CHROME START EVENT:`, payload)
                 const path = (payload as any).user_dir
                 const pid = Number((payload as any).pid)
+                const ws = (payload as any).ws
                 const name = getLastNameFromPath(path)!
-                console.log({ pid }, { name })
+                console.log({ pid }, { name }, { ws })
                 setRunningData(prev => prev.map(p => p.name == name ? { name, pid, running: true, loading: false } : p))
             })
             unlistenChromeCloseRef.current = await listen(CHROME_CLOSED_EVENT_NAME, async ({ payload }) => {
@@ -81,6 +107,12 @@ export function ProfilePage() {
             }
             if (unlistenChromeCloseRef.current) {
                 unlistenChromeCloseRef.current()
+            }
+            if (unlistenChromeApiLaunchRef.current) {
+                unlistenChromeApiLaunchRef.current()
+            }
+            if (unlistenChromeApiCloseRef.current) {
+                unlistenChromeApiCloseRef.current()
             }
         }
     }, [])

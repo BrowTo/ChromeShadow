@@ -4,6 +4,8 @@ import { exists, remove, mkdir, BaseDirectory } from "@tauri-apps/plugin-fs";
 import * as path from "@tauri-apps/api/path";
 import { ProfileType } from "./types";
 import { invoke } from "@tauri-apps/api/core";
+import { load } from "@tauri-apps/plugin-store";
+import { type } from "@tauri-apps/plugin-os";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -109,7 +111,8 @@ export function getLastNameFromPath(path: string) {
 
 export async function launchChromeWithProfile(
   profile: ProfileType,
-  onOpenFailed: (name: string) => void
+  onOpenFailed: (name: string) => void,
+  port?: number
 ) {
   const userDir = await getUserDir(profile.name);
   console.log("Start to open profile: ", profile, userDir);
@@ -136,9 +139,19 @@ export async function launchChromeWithProfile(
       return;
     }
   }
+  let win_chrome_path;
+  const osType = await type();
+  const isWin = osType == "windows";
+  if (isWin) {
+    const store = await load("settings.json");
+    win_chrome_path = await store.get("chrome_path");
+  }
   invoke("launch_chrome", {
+    id: profile.id,
     userDir,
+    port,
     proxy: socks5 ? `socks5://${socks5}` : undefined,
+    win_chrome_path,
   })
     .then(console.log)
     .catch(console.error);

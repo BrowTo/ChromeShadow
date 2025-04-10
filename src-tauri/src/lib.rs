@@ -1,11 +1,15 @@
+use reqwest::Client;
 use serde::Serialize;
+use serde_json::Value;
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 use std::process::Command;
 use std::sync::{Arc, RwLock};
+use std::thread;
 use std::time::Duration;
-use tauri::{Emitter, Window};
+use tauri::{Emitter, WebviewWindow};
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tokio::net::TcpStream as TokioTcpStream;
 use tokio::sync::Mutex;
@@ -13,9 +17,11 @@ use tokio::task;
 use tokio::time::sleep;
 mod proxy_manager;
 use crate::proxy_manager::{check_proxy, list_proxy, start_proxy, stop_proxy, ProxyManager};
+mod server;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ChromeInstance {
+    pub id: u16,
     pub pid: u32,
     pub user_dir: String,
     pub port: u16,
@@ -27,12 +33,21 @@ pub struct ChromeInstance {
 struct ChromeStarted {
     user_dir: String,
     pid: u32,
+    ws: String,
 }
 
 #[derive(Clone, Serialize)]
 struct ChromeStoped {
     pid: u32,
     proxy: Option<String>,
+}
+
+#[derive(Clone, Serialize)]
+struct ChromeLaunchInfo {
+    pid: u32,
+    port: u16,
+    ws: Option<String>,
+    os: String,
 }
 
 lazy_static::lazy_static! {
@@ -70,12 +85,35 @@ fn is_process_running(pid: u32, port: u16) -> bool {
     }
 }
 
-async fn wait_for_chrome_start(port: u16) -> bool {
+async fn get_websocket_debugger_url(url: String) -> Result<String, Box<dyn Error>> {
+    let client = Client::new();
+    let response = client.get(url).send().await?;
+    if !response.status().is_success() {
+        return Err("Failed to get response".into());
+    }
+    let version_info: Value = response.json().await?;
+    if let Some(url) = version_info.get("webSocketDebuggerUrl") {
+        return Ok(url.as_str().unwrap_or_default().to_string());
+    }
+    Err("webSocketDebuggerUrl not found.".into())
+}
+
+async fn wait_for_chrome_start(port: u16) -> Option<String> {
     loop {
-        match TokioTcpStream::connect(format!("127.0.0.1:{}", port)).await {
+        let server_address = format!("127.0.0.1:{}", port);
+        let path = "/json/version";
+        match TokioTcpStream::connect(server_address.clone()).await {
             Ok(_) => {
-                println!("Chrome Started, port: {} used.", port);
-                return true;
+                match get_websocket_debugger_url(format!("http://{}{}", server_address, path)).await
+                {
+                    Ok(ws) => {
+                        println!("Chrome Started, port: {} used.", port);
+                        return Some(ws);
+                    }
+                    Err(_) => {
+                        return None;
+                    }
+                };
             }
             Err(_) => {
                 println!("Waiting Chrome launching...");
@@ -86,7 +124,7 @@ async fn wait_for_chrome_start(port: u16) -> bool {
 }
 
 async fn monitor_chrome(
-    window: Window,
+    window: WebviewWindow,
     user_dir: String,
     pid: u32,
     port: u16,
@@ -94,26 +132,22 @@ async fn monitor_chrome(
 ) {
     let chrome_instances = CHROME_INSTANCES.clone();
     println!("Listening chrome open port: {}", port);
-    if !wait_for_chrome_start(port).await {
-        println!("Chrome (PID: {}) port occupied.", pid);
-        chrome_instances.lock().await.remove(&pid);
-        window
-            .emit("chrome-closed", ChromeStoped { pid, proxy })
-            .unwrap();
-        return;
-    }
-    println!("Chrome port: {} opened, start monitor...", port);
-    let _ = window.emit("chrome-started", ChromeStarted { user_dir, pid });
-    loop {
-        if !is_port_open(port) {
-            println!("Chrome (PID: {}) closed.", pid);
-            chrome_instances.lock().await.remove(&pid);
-            window
-                .emit("chrome-closed", ChromeStoped { pid, proxy })
-                .unwrap();
-            break;
+    if let Some(ws) = wait_for_chrome_start(port).await {
+        println!("Chrome with debug ws: {} opened, start monitor...", ws);
+        let _ = window.emit("chrome-started", ChromeStarted { user_dir, pid, ws });
+        loop {
+            if !is_port_open(port) {
+                println!("Chrome (PID: {}) closed.", pid);
+                chrome_instances.lock().await.remove(&pid);
+                window
+                    .emit("chrome-closed", ChromeStoped { pid, proxy })
+                    .unwrap();
+                break;
+            }
+            sleep(Duration::from_secs(1)).await;
         }
-        sleep(Duration::from_secs(1)).await;
+    } else {
+        println!("Wait for chrome start failed.");
     }
 }
 
@@ -139,17 +173,22 @@ fn find_available_port(start: u16) -> Option<u16> {
 
 #[tauri::command]
 async fn launch_chrome(
-    window: Window,
+    window: WebviewWindow,
+    id: u16,
     user_dir: String,
+    port: Option<u16>,
     proxy: Option<String>,
-) -> Result<String, String> {
-    let port = find_available_port(9223).ok_or("No port useable")?;
+    win_chrome_path: Option<String>,
+) -> Result<ChromeLaunchInfo, String> {
+    let port = port.unwrap_or(find_available_port(9223).ok_or("No port useable")?);
     println!("Find avaliable port: {}", port);
+    let path = if let Some(chrome) = win_chrome_path {
+        chrome
+    } else {
+        "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe".to_string()
+    };
     let (chrome_path, os) = if cfg!(target_os = "windows") {
-        (
-            "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-            "Windows".to_string(),
-        )
+        (path.as_str(), "Windows".to_string())
     } else if cfg!(target_os = "macos") {
         (
             "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -180,6 +219,7 @@ async fn launch_chrome(
         Ok(child) => {
             let pid = child.id();
             let instance = ChromeInstance {
+                id,
                 pid,
                 user_dir: user_dir.clone(),
                 port,
@@ -198,10 +238,12 @@ async fn launch_chrome(
                 port,
                 proxy,
             ));
-            Ok(format!(
-                "Launch chrome success, PORT: {}, PID: {}, OS: {}",
-                port, pid, os
-            ))
+            Ok(ChromeLaunchInfo {
+                pid,
+                port,
+                os,
+                ws: None,
+            })
         }
         Err(e) => Err(format!("Chrome launch failed: {}", e)),
     }
@@ -247,6 +289,13 @@ async fn close_chrome(pid: u32) -> Result<String, String> {
 pub fn run() {
     let manager = ProxyManager::default();
     tauri::Builder::default()
+        .setup(|app| {
+            let handle = app.handle().clone();
+            thread::spawn(move || {
+                server::init(handle).unwrap();
+            });
+            Ok(())
+        })
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_fs::init())
