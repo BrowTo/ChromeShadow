@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { type } from "@tauri-apps/plugin-os"
 import { load, Store } from "@tauri-apps/plugin-store";
+import { open as openUrl } from "@tauri-apps/plugin-shell"
 
 const systemConfFormSchema = () => z.object({
     chrome_path: z.string(),
@@ -96,7 +97,11 @@ export function SettingsPage() {
         <div className="flex flex-col p-4 gap-8">
             <div className="flex flex-col gap-2">
                 <div className="text-sm font-medium">API</div>
-                <p className="text-muted-foreground text-sm">{t('api_hint')}</p>
+                <p className="text-muted-foreground text-sm">
+                    {t('api_hint')}
+                    <span className="ml-2 underline cursor-pointer" onClick={async () => { await openUrl("https://browto.com") }}>
+                        {t('go_get_browto')}
+                    </span></p>
                 <div className="flex gap-4">
                     <span className="w-full text-sm text-green-600 border-green-600 border p-2 bg-green-50 rounded-sm">http://127.0.0.1:51888</span>
                 </div>

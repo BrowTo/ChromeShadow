@@ -92,7 +92,10 @@ export const removeLocalProfile = async (profileName: string) => {
     baseDir: BaseDirectory.AppData,
   });
   if (profileExist) {
-    await remove(`profiles/${profileName}`, { baseDir: BaseDirectory.AppData });
+    await remove(`profiles/${profileName}`, {
+      baseDir: BaseDirectory.AppData,
+      recursive: true,
+    });
   }
 };
 

@@ -4,6 +4,7 @@ use actix_web::{middleware, web, App, HttpServer};
 use serde::{Deserialize, Serialize};
 use sqlx::Executor;
 use sqlx::Row;
+use std::cmp::Ordering;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_sql::{DbInstances, DbPool};
@@ -51,6 +52,21 @@ struct PageInfo {
 }
 
 #[derive(Serialize)]
+struct PageResult<T> {
+    list: Vec<T>,
+    page: u16,
+    page_size: u16,
+    total: u16,
+}
+
+#[derive(Serialize)]
+struct ServerListResponse<T> {
+    success: bool,
+    data: Option<PageResult<T>>,
+    msg: Option<String>,
+}
+
+#[derive(Serialize)]
 struct ServerResponse<T> {
     success: bool,
     data: Option<T>,
@@ -76,7 +92,7 @@ pub async fn group_list(
     let response = match db_pool {
         DbPool::Sqlite(pool) => {
             let sql = format!(
-                "SELECT * FROM group_table LIMIT {} OFFSET {}",
+                "SELECT *, COUNT(*) OVER () AS total FROM group_table LIMIT {} OFFSET {}",
                 info.page_size,
                 (info.page - 1) * info.page_size
             );
@@ -84,15 +100,22 @@ pub async fn group_list(
             let query = sqlx::query(&sql);
             let rows = pool.fetch_all(query).await.unwrap();
             let mut values = Vec::new();
+            let total = rows[0].get("total");
             for row in rows {
                 let id: u16 = row.get("id");
                 let name: String = row.get("name");
                 let remark: String = row.get("remark");
                 values.push(CommonInfo { id, name, remark });
             }
-            web::Json(ServerResponse {
+            let page_data = PageResult {
+                page: info.page,
+                page_size: info.page_size,
+                list: values,
+                total,
+            };
+            web::Json(ServerListResponse {
                 success: true,
-                data: Some(values),
+                data: Some(page_data),
                 msg: None,
             })
         }
@@ -100,11 +123,11 @@ pub async fn group_list(
     response
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct GroupInfo {
     page: u16,
     page_size: u16,
-    group_id: i16,
+    group_id: i16, //-1:ungruped;0:all
 }
 
 #[derive(Serialize, Clone)]
@@ -135,32 +158,45 @@ pub async fn browser_list(
     info: web::Json<GroupInfo>,
     data: web::Data<TauriAppState>,
 ) -> impl Responder {
+    println!("Request browser list with: {:?}", info);
     let app = data.app.lock().unwrap();
     let instances_state = app.state::<DbInstances>();
     let instances = instances_state.0.read().await;
     let db_pool = instances.get("sqlite:shadow.db").unwrap();
     let response = match db_pool {
         DbPool::Sqlite(pool) => {
-            let mut sql = "SELECT p.id, p.name, p.remark, COALESCE(g.name, 'ungrouped') AS group_name, COALESCE(pr.name, 'unproxied') AS proxy_name FROM profile_table p LEFT JOIN group_table g ON p.group_id = g.id LEFT JOIN proxy_table pr ON p.proxy_id = pr.id".to_owned();
-            if info.group_id == -1 {
-                sql += format!(
-                    " WHERE p.group_id IS NULL LIMIT {} OFFSET {}",
-                    info.page_size,
-                    (info.page - 1) * info.page_size
-                )
-                .as_str();
-            } else if info.group_id > 0 {
-                sql += format!(
-                    " WHERE p.group_id = {} LIMIT {} OFFSET {}",
-                    info.group_id,
-                    info.page_size,
-                    (info.page - 1) * info.page_size
-                )
-                .as_str();
-            }
+            let mut sql = "SELECT p.id, p.name, p.remark, COUNT(*) OVER () AS total, COALESCE(g.name, 'ungrouped') AS group_name, COALESCE(pr.name, 'unproxied') AS proxy_name FROM profile_table p LEFT JOIN group_table g ON p.group_id = g.id LEFT JOIN proxy_table pr ON p.proxy_id = pr.id".to_owned();
+            match info.group_id.cmp(&0) {
+                Ordering::Less => {
+                    sql += format!(
+                        " WHERE p.group_id IS NULL LIMIT {} OFFSET {}",
+                        info.page_size,
+                        (info.page - 1) * info.page_size
+                    )
+                    .as_str();
+                }
+                Ordering::Greater => {
+                    sql += format!(
+                        " WHERE p.group_id = {} LIMIT {} OFFSET {}",
+                        info.group_id,
+                        info.page_size,
+                        (info.page - 1) * info.page_size
+                    )
+                    .as_str();
+                }
+                Ordering::Equal => {
+                    sql += format!(
+                        " LIMIT {} OFFSET {}",
+                        info.page_size,
+                        (info.page - 1) * info.page_size
+                    )
+                    .as_str();
+                }
+            };
             println!("{}", sql);
             let query = sqlx::query(&sql);
             let rows = pool.fetch_all(query).await.unwrap();
+            let total = rows[0].get("total");
             let mut values = Vec::new();
             for row in rows {
                 let id: u16 = row.get("id");
@@ -176,9 +212,15 @@ pub async fn browser_list(
                     proxy_name,
                 });
             }
-            web::Json(ServerResponse {
+            let page_data = PageResult {
+                page: info.page,
+                page_size: info.page_size,
+                list: values,
+                total,
+            };
+            web::Json(ServerListResponse {
                 success: true,
-                data: Some(values),
+                data: Some(page_data),
                 msg: None,
             })
         }

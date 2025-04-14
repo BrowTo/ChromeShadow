@@ -62,11 +62,7 @@ export const AddProfileBtn = () => {
                 editProfileId.current = editInfo.id
                 const groupInfos = await getGroups()
                 const proxyInfos = await getProxies()
-                const test = {
-                    groupId: groupInfos.find(gi => gi.name == editInfo.group_name)?.id,
-                    proxyId: proxyInfos.find(pi => pi.name == editInfo.proxy_name)?.id,
-                }
-                console.log({ groupInfos }, { proxyInfos }, { test })
+                console.log({ groupInfos }, { proxyInfos })
                 setInfo(prev => ({
                     ...prev,
                     name: editInfo.name,
@@ -111,7 +107,6 @@ export const AddProfileBtn = () => {
     };
 
     const handleSave = async () => {
-
         console.log({ info })
         if (!info.name) {
             toast.warning(t("empty_name"))
@@ -146,7 +141,7 @@ export const AddProfileBtn = () => {
         }
     }
 
-    return <div className="flex pl-4">
+    return <div className="flex pl-4 gpa-[0.5px]">
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <div>

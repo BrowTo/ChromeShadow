@@ -26,6 +26,7 @@
         "delete": "Delete",
         "unproxied": "Unproxied",
         "api_hint": "Recommended for one-click batch Chrome automation with BrowTo App",
+        "go_get_browto": "Go to learn about",
         "chrome_path": "Chrome installation path",
         "chrome_path_hint": "If Chrome is installed in a non-default path, change it to the correct path",
         "language": "Language",
