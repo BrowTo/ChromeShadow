@@ -17,6 +17,7 @@ import { SettingsPage } from "@/settings/page"
 import { useTranslation } from "react-i18next"
 import { TFunction } from "i18next"
 import { ProxiesPage } from "@/proxies/page"
+import { getVersion } from "@tauri-apps/api/app"
 
 export type MenuType = {
     title: string,
@@ -59,11 +60,19 @@ export function AppSidebar({ onMenuSelected }: AppSidebarProps) {
     const { t, i18n: { language } } = useTranslation()
     const [curMenu, setCurMenu] = useState(0)
     const [menuItems, setMenuItems] = useState(getMenuItems(t))
+    const [version, setVersion] = useState("")
     useEffect(() => {
         const newMenu = getMenuItems(t)
         onMenuSelected(newMenu[curMenu])
         setMenuItems(newMenu)
     }, [t, language])
+
+    useEffect(() => {
+        (async () => {
+            const appVersion = await getVersion()
+            setVersion(appVersion)
+        })()
+    }, [])
 
     return (
         <Sidebar collapsible="offcanvas">
@@ -81,7 +90,7 @@ export function AppSidebar({ onMenuSelected }: AppSidebarProps) {
                                 <span className="truncate font-semibold">
                                     {t('app_name')}
                                 </span>
-                                <span className="truncate text-xs">V1.0.0</span>
+                                <span className="truncate text-xs">v{version}</span>
                             </div>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

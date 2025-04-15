@@ -289,6 +289,7 @@ async fn close_chrome(pid: u32) -> Result<String, String> {
 pub fn run() {
     let manager = ProxyManager::default();
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let handle = app.handle().clone();
             thread::spawn(move || {

@@ -30,9 +30,16 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true
   },
   "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEyOUVFRDBDMURFQTcyODgKUldTSWN1b2RETzJlRWlubVRqZWJ6M2JqZTJsWnVhdWRzWHJGeFBQRzBTanhnMklnSGVVM1ZLOEYK",
+      "endpoints": [
+        "https://github.com/BrowTo/ChromeShadow/releases/latest/download/latest.json"
+      ]
+    },
     "sql": {
       "preload": [
         "sqlite:shadow.db"

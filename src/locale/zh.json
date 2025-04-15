@@ -78,6 +78,8 @@
         "proxy_add_success": "代理新增成功",
         "proxy_add_failed": "代理新增失败",
         "settings_update_success": "设置更新成功",
-        "chrome_path_error": "Chrome路径配置错误，未能找到执行文件"
+        "chrome_path_error": "Chrome路径配置错误，未能找到执行文件",
+        "version": "版本：",
+        "check_update": "检查更新"
     }
 }

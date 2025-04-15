@@ -20,6 +20,9 @@ import { ChevronDown } from "lucide-react";
 import { type } from "@tauri-apps/plugin-os"
 import { load, Store } from "@tauri-apps/plugin-store";
 import { open as openUrl } from "@tauri-apps/plugin-shell"
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { getVersion } from "@tauri-apps/api/app";
 
 const systemConfFormSchema = () => z.object({
     chrome_path: z.string(),
@@ -56,6 +59,7 @@ export function SettingsPage() {
     const { t, i18n: { changeLanguage, language } } = useTranslation();
     const [currentLanguage, setCurrentLanguage] = useState(language)
     const [isWindows, setIsWindows] = useState(false)
+    const [version, setVersion] = useState("")
 
     const form = useForm<SystemConfFormValues>({
         resolver: zodResolver(systemConfFormSchema()),
@@ -68,6 +72,10 @@ export function SettingsPage() {
             setIsWindows(osType == 'windows')
         }
         checkOs();
+        (async () => {
+            const appVersion = await getVersion()
+            setVersion(appVersion)
+        })()
     }, [])
 
     async function onSubmit(data: SystemConfFormValues) {
@@ -93,6 +101,35 @@ export function SettingsPage() {
         changeLanguage(newLanguage);
     }
 
+    const checkUpdate = async () => {
+        const update = await check();
+        if (update) {
+            console.log(
+                `found update ${update.version} from ${update.date} with notes ${update.body}`
+            );
+            let downloaded = 0;
+            let contentLength = 0;
+            await update.downloadAndInstall((event) => {
+                switch (event.event) {
+                    case 'Started':
+                        contentLength = event.data.contentLength ?? 0;
+                        console.log(`started downloading ${event.data.contentLength} bytes`);
+                        break;
+                    case 'Progress':
+                        downloaded += event.data.chunkLength;
+                        console.log(`downloaded ${downloaded} from ${contentLength}`);
+                        break;
+                    case 'Finished':
+                        console.log('download finished');
+                        break;
+                }
+            });
+
+            console.log('update installed');
+            await relaunch();
+        }
+    }
+
     return (
         <div className="flex flex-col p-4 gap-8">
             <div className="flex flex-col gap-2">
@@ -105,6 +142,12 @@ export function SettingsPage() {
                 <div className="flex gap-4">
                     <span className="w-full text-sm text-green-600 border-green-600 border p-2 bg-green-50 rounded-sm">http://127.0.0.1:51888</span>
                 </div>
+            </div>
+            <div>
+                <div className="text-sm font-medium mb-2">{t('version')}
+                    <span className="ml-1 text-muted-foreground text-sm">v{version}</span>
+                </div>
+                <Button onClick={checkUpdate}>{t('check_update')}</Button>
             </div>
             <Form {...form} >
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
