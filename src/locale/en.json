@@ -80,6 +80,8 @@
         "settings_update_success": "Setting information is updated successfully",
         "chrome_path_error": "The Chrome path was incorrectly configured and the execution file could not be found",
         "version": "Version:",
-        "check_update": "Check update"
+        "check_update": "Check update",
+        "check_failed": "Check failed",
+        "version_newest": "It's the latest version"
     }
 }

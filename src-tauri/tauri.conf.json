@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "shadow",
+        "title": "",
         "width": 900,
         "height": 600
       }

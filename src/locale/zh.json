@@ -80,6 +80,8 @@
         "settings_update_success": "设置更新成功",
         "chrome_path_error": "Chrome路径配置错误，未能找到执行文件",
         "version": "版本：",
-        "check_update": "检查更新"
+        "check_update": "检查更新",
+        "check_failed": "检查更新失败",
+        "version_newest": "已是最新版本"
     }
 }

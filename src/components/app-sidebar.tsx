@@ -1,7 +1,8 @@
-import { AppWindow, FolderTree, Settings, Chrome, Earth } from "lucide-react"
+import { AppWindow, FolderTree, Settings, Chrome, Earth, Send, ChevronRight } from "lucide-react"
 import {
     Sidebar,
     SidebarContent,
+    SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarHeader,
@@ -18,6 +19,7 @@ import { useTranslation } from "react-i18next"
 import { TFunction } from "i18next"
 import { ProxiesPage } from "@/proxies/page"
 import { getVersion } from "@tauri-apps/api/app"
+import { open as openUrl } from "@tauri-apps/plugin-shell"
 
 export type MenuType = {
     title: string,
@@ -50,6 +52,14 @@ export function getMenuItems(t: TFunction): Array<MenuType> {
         },
     ])
 }
+
+const navSecondary = [
+    {
+        title: "Support",
+        url: "#",
+        icon: Send,
+    },
+]
 
 export interface AppSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     onMenuSelected: (item: MenuType) => void
@@ -115,6 +125,17 @@ export function AppSidebar({ onMenuSelected }: AppSidebarProps) {
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild onClick={async () => {
+                            await openUrl("https://t.me/+DMqNZV1aR_85NTMx")
+                        }}>
+                            <a> <Send /> <span>Telegram</span> <ChevronRight className="ml-auto" /> </a>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
         </Sidebar>
     )
 }

@@ -99,25 +99,39 @@ pub async fn group_list(
             println!("{}", sql);
             let query = sqlx::query(&sql);
             let rows = pool.fetch_all(query).await.unwrap();
-            let mut values = Vec::new();
-            let total = rows[0].get("total");
-            for row in rows {
-                let id: u16 = row.get("id");
-                let name: String = row.get("name");
-                let remark: String = row.get("remark");
-                values.push(CommonInfo { id, name, remark });
+            if !rows.is_empty() {
+                let mut values = Vec::new();
+                let total = rows[0].get("total");
+                for row in rows {
+                    let id: u16 = row.get("id");
+                    let name: String = row.get("name");
+                    let remark: String = row.get("remark");
+                    values.push(CommonInfo { id, name, remark });
+                }
+                let page_data = PageResult {
+                    page: info.page,
+                    page_size: info.page_size,
+                    list: values,
+                    total,
+                };
+                web::Json(ServerListResponse {
+                    success: true,
+                    data: Some(page_data),
+                    msg: None,
+                })
+            } else {
+                let page_data = PageResult {
+                    page: info.page,
+                    page_size: info.page_size,
+                    list: Vec::new(),
+                    total: 0,
+                };
+                web::Json(ServerListResponse {
+                    success: true,
+                    data: Some(page_data),
+                    msg: None,
+                })
             }
-            let page_data = PageResult {
-                page: info.page,
-                page_size: info.page_size,
-                list: values,
-                total,
-            };
-            web::Json(ServerListResponse {
-                success: true,
-                data: Some(page_data),
-                msg: None,
-            })
         }
     };
     response
@@ -196,33 +210,47 @@ pub async fn browser_list(
             println!("{}", sql);
             let query = sqlx::query(&sql);
             let rows = pool.fetch_all(query).await.unwrap();
-            let total = rows[0].get("total");
-            let mut values = Vec::new();
-            for row in rows {
-                let id: u16 = row.get("id");
-                let name: String = row.get("name");
-                let remark: String = row.get("remark");
-                let group_name = row.get("group_name");
-                let proxy_name = row.get("proxy_name");
-                values.push(ProfileInfo {
-                    id,
-                    name,
-                    remark,
-                    group_name,
-                    proxy_name,
-                });
+            if !rows.is_empty() {
+                let total = rows[0].get("total");
+                let mut values = Vec::new();
+                for row in rows {
+                    let id: u16 = row.get("id");
+                    let name: String = row.get("name");
+                    let remark: String = row.get("remark");
+                    let group_name = row.get("group_name");
+                    let proxy_name = row.get("proxy_name");
+                    values.push(ProfileInfo {
+                        id,
+                        name,
+                        remark,
+                        group_name,
+                        proxy_name,
+                    });
+                }
+                let page_data = PageResult {
+                    page: info.page,
+                    page_size: info.page_size,
+                    list: values,
+                    total,
+                };
+                web::Json(ServerListResponse {
+                    success: true,
+                    data: Some(page_data),
+                    msg: None,
+                })
+            } else {
+                let page_data = PageResult {
+                    list: [].to_vec(),
+                    page: info.page,
+                    page_size: info.page_size,
+                    total: 0,
+                };
+                web::Json(ServerListResponse {
+                    success: true,
+                    data: Some(page_data),
+                    msg: None,
+                })
             }
-            let page_data = PageResult {
-                page: info.page,
-                page_size: info.page_size,
-                list: values,
-                total,
-            };
-            web::Json(ServerListResponse {
-                success: true,
-                data: Some(page_data),
-                msg: None,
-            })
         }
     };
     response
@@ -261,10 +289,13 @@ pub async fn browser_open(
                 let running_chrome = list_chrome_instances().await;
                 let cur_chrome = running_chrome.iter().find(|chrome| chrome.id == id);
                 if cur_chrome.is_some() {
+                    let ws = wait_for_chrome_start(cur_chrome.unwrap().port)
+                        .await
+                        .unwrap();
                     web::Json(ServerResponse {
-                        success: false,
-                        data: None,
-                        msg: Some("chrome with id already open".to_string()),
+                        success: true,
+                        data: Some(ChromeWsInfo { ws }),
+                        msg: None,
                     })
                 } else {
                     let port = find_available_port(9223).ok_or("No port useable").unwrap();

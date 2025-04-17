@@ -31,19 +31,19 @@ ChromeShadow is a cross-platform Chrome multi-open desktop App tool built on top
 **Available for both MacOS and Windows.**
 
 <p align="center">
-  <img src = "https://imgur.com/ieXnw3f.png" width=680>
+  <img src="https://imgur.com/ieXnw3f.png" width=680>
 </p>
 
 ## Features
 
 A few of the things you can do with ChromeShadow:
 
-* Basic: Create a new Chrome browser or batch create multiple browsers.
-* Grouping: Allows you to manage multiple Chrome browsers in groups.
-* Proxy: Create HTTP or SOCKS5 proxies and apply them to different Chrome browsers, and support proxies that require user names and passwords for authentication.
-* Note: Brief remarks about browsers, groups, and proxies are supported.
-* Multi-language: Currently support Chinese and English free switching.
-* API: You can automate the management of your Chrome browser (RPA) with the automatically enabled native API server feature.
+- Basic: Create a new Chrome browser or batch create multiple browsers.
+- Grouping: Allows you to manage multiple Chrome browsers in groups.
+- Proxy: Create SOCKS5 proxies and apply them to different Chrome browsers, and support proxies that require user names and passwords for authentication.
+- Note: Brief remarks about browsers, groups, and proxies are supported.
+- Multi-language: Currently support Chinese and English free switching.
+- API: You can automate the management of your Chrome browser (RPA) with the automatically enabled native API server feature.
 
 ## Download
 
@@ -61,7 +61,7 @@ If there's anything you'd like to chat about, please feel free to join our [Tele
 
 ## Run Process
 
-- Follow the [Tauri Guide](https://v2.tauri.app/start/prerequisites/) for getting started building a project with native code. 
+- Follow the [Tauri Guide](https://v2.tauri.app/start/prerequisites/) for getting started building a project with native code.
 - Clone or download the repo
 - `pnpm i` to install dependencies
 - `pnpm tauri dev` to run the project
