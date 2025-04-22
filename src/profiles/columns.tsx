@@ -21,7 +21,7 @@ export function getColumns(
     t: TFunction,
     runningData: ProfileStatusType[],
     onLoading: (name: string, open: boolean) => void,
-    onOpenFailed: (name: string) => void): ColumnDef<ProfileType>[] {
+    onOpenFailed: (name: string, error: string) => void): ColumnDef<ProfileType>[] {
 
     return [
         {

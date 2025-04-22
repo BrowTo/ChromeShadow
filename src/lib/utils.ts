@@ -114,7 +114,7 @@ export function getLastNameFromPath(path: string) {
 
 export async function launchChromeWithProfile(
   profile: ProfileType,
-  onOpenFailed: (name: string) => void,
+  onOpenFailed: (name: string, error: string) => void,
   port?: number
 ) {
   const userDir = await getUserDir(profile.name);
@@ -136,8 +136,8 @@ export async function launchChromeWithProfile(
         proxy: { ip: proxyInfo.host, port: proxyInfo.port, auth },
       });
       console.log({ socks5 });
-    } catch (error) {
-      onOpenFailed(profile.name);
+    } catch (error: any) {
+      onOpenFailed(profile.name, error.toString());
       console.log(`Start proxy error: ${error}`);
       return;
     }
@@ -157,8 +157,8 @@ export async function launchChromeWithProfile(
     win_chrome_path,
   })
     .then(console.log)
-    .catch(error => {
-      onOpenFailed(profile.name);
+    .catch((error: any) => {
+      onOpenFailed(profile.name, error);
       console.log(`Launch chrome error: ${error}`);
     });
 }

@@ -48,7 +48,7 @@ interface DataTableProps {
     onFilterGroup: (groupId: number) => void
     onRefresh: () => void
     onLoading: (names: string[], open: boolean) => void
-    onOpenFailed: (name: string) => void
+    onOpenFailed: (name: string, error: string) => void
 }
 
 export const DataTable = React.forwardRef(({

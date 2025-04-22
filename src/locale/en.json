@@ -82,6 +82,7 @@
         "version": "Version:",
         "check_update": "Check update",
         "check_failed": "Check failed",
-        "version_newest": "It's the latest version"
+        "version_newest": "It's the latest version",
+        "open_chrome_failed": "Launch chrome {{name}} failed: {{error}}"
     }
 }

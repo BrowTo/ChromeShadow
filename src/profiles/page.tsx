@@ -8,6 +8,7 @@ import { invoke } from "@tauri-apps/api/core"
 import { getLastNameFromPath, launchChromeWithProfile } from "@/lib/utils"
 import { getColumns } from "./columns"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 
 export function ProfilePage() {
     const [data, setData] = useState<Array<ProfileType>>([])
@@ -55,8 +56,9 @@ export function ProfilePage() {
                     group_name: null,
                     remark: null
                 }
-                await launchChromeWithProfile(profile, (name) => {
+                await launchChromeWithProfile(profile, (name, error) => {
                     setRunningData(prev => prev.filter(item => item.name != name))
+                    toast(t('open_chrome_failed', { name, error }))
                 }, port)
             });
             unlistenChromeApiCloseRef.current = await listen(CHROME_API_CLOSE_EVENT_NAME, async ({ payload }) => {
@@ -146,8 +148,9 @@ export function ProfilePage() {
                 } else {
                     setRunningData(prev => prev.map(p => p.name == name ? { name, pid: p.pid, running: p.running, loading: true } : p))
                 }
-            }, name => {
+            }, (name, error) => {
                 setRunningData(prev => prev.filter(item => item.name != name))
+                toast(t('open_chrome_failed', { name, error }))
             })} data={data} onFilterGroup={refreshProfiles} onRefresh={() => {
                 refreshProfiles(curGroupIdRef.current)
             }} onLoading={(names, open) => {
@@ -157,8 +160,9 @@ export function ProfilePage() {
                 } else {
                     setRunningData(prev => prev.map(p => names.includes(p.name) ? { name: p.name, pid: p.pid, running: p.running, loading: true } : p))
                 }
-            }} onOpenFailed={name => {
+            }} onOpenFailed={(name, error) => {
                 setRunningData(prev => prev.filter(item => item.name != name))
+                toast(t('open_chrome_failed', { name, error }))
             }} />
         </div>
     )

@@ -82,6 +82,7 @@
         "version": "版本：",
         "check_update": "检查更新",
         "check_failed": "检查更新失败",
-        "version_newest": "已是最新版本"
+        "version_newest": "已是最新版本",
+        "open_chrome_failed": "打开浏览器 {{name}} 失败：{{error}}"
     }
 }
