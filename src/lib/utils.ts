@@ -157,5 +157,8 @@ export async function launchChromeWithProfile(
     win_chrome_path,
   })
     .then(console.log)
-    .catch(console.error);
+    .catch(error => {
+      onOpenFailed(profile.name);
+      console.log(`Launch chrome error: ${error}`);
+    });
 }
