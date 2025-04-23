@@ -52,15 +52,6 @@ export function getMenuItems(t: TFunction): Array<MenuType> {
         },
     ])
 }
-
-const navSecondary = [
-    {
-        title: "Support",
-        url: "#",
-        icon: Send,
-    },
-]
-
 export interface AppSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     onMenuSelected: (item: MenuType) => void
 }

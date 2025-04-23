@@ -52,10 +52,7 @@ const initOrLoadSettings = async () => {
     }
 }
 
-let defaultValues = await initOrLoadSettings()
-
 export function SettingsPage() {
-
     const { t, i18n: { changeLanguage, language } } = useTranslation();
     const [currentLanguage, setCurrentLanguage] = useState(language)
     const [isWindows, setIsWindows] = useState(false)
@@ -64,7 +61,10 @@ export function SettingsPage() {
 
     const form = useForm<SystemConfFormValues>({
         resolver: zodResolver(systemConfFormSchema()),
-        defaultValues,
+        defaultValues: async () => {
+            let defaultValues = await initOrLoadSettings()
+            return defaultValues
+        },
     })
 
     useEffect(() => {
@@ -93,7 +93,6 @@ export function SettingsPage() {
         if (currentLanguage != data.lang) {
             handleChangeLanguage()
         }
-        defaultValues = data
     }
 
     const handleChangeLanguage = () => {
